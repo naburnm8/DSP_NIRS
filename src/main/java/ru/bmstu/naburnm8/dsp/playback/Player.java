@@ -1,6 +1,10 @@
 package ru.bmstu.naburnm8.dsp.playback;
 
+import ru.bmstu.naburnm8.dsp.filtering.Filter;
+
 import javax.sound.sampled.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Player {
     private final SourceDataLine sourceDataLine;
@@ -19,7 +23,7 @@ public class Player {
     }
 
     public void play() {
-        byte[] playbackBuf = new byte[1024];
+        byte[] playbackBuf = new byte[4096];
         while(!ringBuffer.isEmpty()){
             int bytesRead = ringBuffer.read(playbackBuf,0, playbackBuf.length);
             sourceDataLine.write(playbackBuf,0, bytesRead);

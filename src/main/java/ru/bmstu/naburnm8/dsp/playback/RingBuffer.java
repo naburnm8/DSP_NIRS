@@ -1,7 +1,9 @@
 package ru.bmstu.naburnm8.dsp.playback;
 
+import ru.bmstu.naburnm8.dsp.filtering.ByteConverter;
+
 public class RingBuffer {
-    private final byte[] buffer;
+    private byte[] buffer;
     private int writePos = 0;
     private int readPos = 0;
     private int available = 0;
@@ -34,5 +36,18 @@ public class RingBuffer {
 
     public synchronized boolean isEmpty() {
         return available == 0;
+    }
+    // каждый сэмпл (инт), взять левый и правый каналы (шорт) умножить их, обратно в инт, потом обратно в байт
+    public void applyVolume(double volume) { // TODO: TRY BYTE -> INT -> SHORT
+        int[] samples = ByteConverter.byteArrayToIntArray(buffer);
+        for (int i = 0; i < samples.length; i++) {
+            samples[i] = (int) (samples[i] * volume);
+        }
+        this.buffer = ByteConverter.intArrayToByteArray(samples);
+    }
+    public void applyVolume1Byte(double volume) {
+        for (int i = 0; i < buffer.length; i++) {
+            buffer[i] = (byte)(buffer[i] * volume);
+        }
     }
 }
