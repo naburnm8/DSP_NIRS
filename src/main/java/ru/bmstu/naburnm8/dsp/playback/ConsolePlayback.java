@@ -11,6 +11,27 @@ public class ConsolePlayback {
     public static void main(String[] args){
         String path = "electroswing.wav";
         int ringBufSize = 4096;
+        try{
+            AudioLoader loader = new AudioLoader(path);
+            AudioFormat format = loader.getAudioFormat();
+            Player player = new Player(format, ringBufSize);
+            RingBuffer ringBuffer = player.getRingBuffer();
+            int loaderBytesLoaded = loader.loadToBuffer(ringBuffer, ringBufSize);
+            while (loaderBytesLoaded > 0){
+                player.play();
+                loaderBytesLoaded = loader.loadToBuffer(ringBuffer, ringBufSize);
+            }
+            loader.close();
+            player.stop();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+    }
+    public static void mainThreaded(String[] args){ // doesn't work :(
+        String path = "electroswing.wav";
+        int ringBufSize = 4096;
         try {
             AudioLoader loader = new AudioLoader(path);
             AudioFormat format = loader.getAudioFormat();
@@ -21,7 +42,7 @@ public class ConsolePlayback {
                try {
                    int bytesRead;
                    do {
-                       bytesRead = loader.loadToBuffer(ringBuffer, 1024);
+                       bytesRead = loader.loadToBuffer(ringBuffer, ringBufSize);
                    } while (bytesRead > 0);
                } catch (IOException e) {
                    e.printStackTrace();
