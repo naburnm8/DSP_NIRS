@@ -3,12 +3,12 @@ package ru.bmstu.naburnm8.dsp.playback;
 import ru.bmstu.naburnm8.dsp.files.AudioLoader;
 
 import javax.sound.sampled.AudioFormat;
-import java.util.ArrayList;
+
 
 public class ConsolePlayback {
     public static void main(String[] args){
         String path = "electroswing.wav";
-        int ringBufSize = 65536;
+        int ringBufSize = 4096;
         try{
             AudioLoader loader = new AudioLoader(path);
             AudioFormat format = loader.getAudioFormat();
@@ -16,7 +16,7 @@ public class ConsolePlayback {
             RingBuffer ringBuffer = player.getRingBuffer();
             int loaderBytesLoaded = loader.loadToBuffer(ringBuffer, ringBufSize);
             while (loaderBytesLoaded > 0){
-                ringBuffer.applyVolume1Byte(0.1);
+                ringBuffer.applyVolume(0.5);
                 player.play();
                 loaderBytesLoaded = loader.loadToBuffer(ringBuffer, ringBufSize);
             }

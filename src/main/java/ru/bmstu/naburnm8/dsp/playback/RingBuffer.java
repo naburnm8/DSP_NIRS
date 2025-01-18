@@ -1,6 +1,5 @@
 package ru.bmstu.naburnm8.dsp.playback;
 
-import ru.bmstu.naburnm8.dsp.filtering.ByteConverter;
 
 public class RingBuffer {
     private byte[] buffer;
@@ -37,14 +36,28 @@ public class RingBuffer {
     public synchronized boolean isEmpty() {
         return available == 0;
     }
-    // каждый сэмпл (инт), взять левый и правый каналы (шорт) умножить их, обратно в инт, потом обратно в байт
-    public void applyVolume(double volume) { // TODO: TRY BYTE -> INT -> SHORT
-        int[] samples = ByteConverter.byteArrayToIntArray(buffer);
-        for (int i = 0; i < samples.length; i++) {
-            samples[i] = (int) (samples[i] * volume);
+
+    public synchronized void applyVolume(double factor) {
+        int bufferSize = available;  // Number of samples in the buffer
+        int readIndex = readPos;
+
+        // Iterate over the available samples in the buffer
+        for (int i = 0; i < bufferSize; i++) {
+            // Read the 16-bit sample (two bytes per sample)
+            short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
+
+            // Modify the sample by the factor
+            sample = (short)Math.max(Math.min(sample * factor, Short.MAX_VALUE), Short.MIN_VALUE);
+
+            // Write the modified sample back into the buffer (two bytes)
+            buffer[readIndex] = (byte)(sample & 0xFF);  // Low byte
+            buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);  // High byte
+
+            // Move to the next sample (advance by 2 bytes)
+            readIndex = (readIndex + 2) % buffer.length;
         }
-        this.buffer = ByteConverter.intArrayToByteArray(samples);
     }
+
     public void applyVolume1Byte(double volume) {
         for (int i = 0; i < buffer.length; i++) {
             buffer[i] = (byte)(buffer[i] * volume);
