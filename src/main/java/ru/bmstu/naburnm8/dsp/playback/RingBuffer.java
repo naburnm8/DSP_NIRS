@@ -2,7 +2,7 @@ package ru.bmstu.naburnm8.dsp.playback;
 
 
 public class RingBuffer {
-    private byte[] buffer;
+    private final byte[] buffer;
     private int writePos = 0;
     private int readPos = 0;
     private int available = 0;
@@ -57,6 +57,21 @@ public class RingBuffer {
             readIndex = (readIndex + 2) % buffer.length;
         }
     }
+
+    public synchronized void applyEcho(int delayInBytes, double decayFactor) {
+        int bufferSize = available;
+        int readIndex = readPos;
+        for (int i = 0; i < bufferSize; i++) {
+            short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
+            short delayedSample = (short)((buffer[((bufferSize + readIndex) - delayInBytes) % bufferSize] & 0xFF) | (buffer[((bufferSize + readIndex) - delayInBytes + 1) % bufferSize] << 8));
+            sample = (short) (sample + delayedSample*decayFactor);
+            buffer[readIndex] = (byte)(sample & 0xFF);
+            buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);
+            readIndex = (readIndex + 2) % buffer.length;
+        }
+    }
+
+
 
     public void applyVolume1Byte(double volume) {
         for (int i = 0; i < buffer.length; i++) {

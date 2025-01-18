@@ -7,8 +7,8 @@ import javax.sound.sampled.AudioFormat;
 
 public class ConsolePlayback {
     public static void main(String[] args){
-        String path = "electroswing.wav";
-        int ringBufSize = 4096;
+        String path = "electroswingMONO16.wav";
+        int ringBufSize = 32768;
         try{
             AudioLoader loader = new AudioLoader(path);
             AudioFormat format = loader.getAudioFormat();
@@ -17,6 +17,7 @@ public class ConsolePlayback {
             int loaderBytesLoaded = loader.loadToBuffer(ringBuffer, ringBufSize);
             while (loaderBytesLoaded > 0){
                 ringBuffer.applyVolume(0.5);
+                ringBuffer.applyEcho(4096,0.2);
                 player.play();
                 loaderBytesLoaded = loader.loadToBuffer(ringBuffer, ringBufSize);
             }
