@@ -6,6 +6,7 @@ public class RingBuffer {
     private int writePos = 0;
     private int readPos = 0;
     private int available = 0;
+    private double vibratoRate = 0;
 
     public RingBuffer(int size) {
         buffer = new byte[size];
@@ -43,17 +44,12 @@ public class RingBuffer {
 
         // Iterate over the available samples in the buffer
         for (int i = 0; i < bufferSize; i++) {
-            // Read the 16-bit sample (two bytes per sample)
             short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
 
-            // Modify the sample by the factor
             sample = (short)Math.max(Math.min(sample * factor, Short.MAX_VALUE), Short.MIN_VALUE);
 
-            // Write the modified sample back into the buffer (two bytes)
             buffer[readIndex] = (byte)(sample & 0xFF);  // Low byte
             buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);  // High byte
-
-            // Move to the next sample (advance by 2 bytes)
             readIndex = (readIndex + 2) % buffer.length;
         }
     }
@@ -62,16 +58,38 @@ public class RingBuffer {
         int bufferSize = available;
         int readIndex = readPos;
         for (int i = 0; i < bufferSize; i++) {
+            if(i < delayInBytes){
+                continue;
+            }
             short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
+
             short delayedSample = (short)((buffer[((bufferSize + readIndex) - delayInBytes) % bufferSize] & 0xFF) | (buffer[((bufferSize + readIndex) - delayInBytes + 1) % bufferSize] << 8));
             sample = (short) (sample + delayedSample*decayFactor);
+
+            //sample = (short) (Math.max(Math.min(sample + delayedSample*decayFactor, Short.MAX_VALUE), Short.MAX_VALUE));
+
             buffer[readIndex] = (byte)(sample & 0xFF);
             buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);
             readIndex = (readIndex + 2) % buffer.length;
         }
     }
 
-
+    public synchronized void applyVibrato(double fileRate, double decayFactor, double speedFactor){
+        int bufferSize = available;
+        int readIndex = readPos;
+        if (this.vibratoRate == 0){
+            this.vibratoRate = this.buffer.length / (fileRate*2);
+        }
+        for (int i = 0; i < bufferSize; i++) {
+            short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
+            double currentTime = i / (fileRate*2);
+            double currentSine = Math.sin(2*Math.PI*currentTime*speedFactor);
+            sample = (short)(sample + currentSine*sample*decayFactor);
+            buffer[readIndex] = (byte)(sample & 0xFF);
+            buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);
+            readIndex = (readIndex + 2) % buffer.length;
+        }
+    }
 
     public void applyVolume1Byte(double volume) {
         for (int i = 0; i < buffer.length; i++) {

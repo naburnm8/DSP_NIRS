@@ -23,7 +23,7 @@ public class Player {
     }
 
     public void play() {
-        byte[] playbackBuf = new byte[32768];
+        byte[] playbackBuf = new byte[65536];
         while(!ringBuffer.isEmpty()){
             int bytesRead = ringBuffer.read(playbackBuf,0, playbackBuf.length);
             sourceDataLine.write(playbackBuf,0, bytesRead);
