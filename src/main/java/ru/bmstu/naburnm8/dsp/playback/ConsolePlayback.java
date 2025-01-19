@@ -17,8 +17,8 @@ public class ConsolePlayback {
             int loaderBytesLoaded = loader.loadToBuffer(ringBuffer, ringBufSize);
             while (loaderBytesLoaded > 0){
                 ringBuffer.applyVolume(0.5);
-                ringBuffer.applyEcho(4096,0.3);
-                //ringBuffer.applyVibrato(44000, 0.5, 2);
+                //ringBuffer.applyEcho(4096,0.3);
+                ringBuffer.applyVibrato(44000, 0.75, 1);
                 player.play();
                 loaderBytesLoaded = loader.loadToBuffer(ringBuffer, ringBufSize);
             }

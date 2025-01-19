@@ -78,12 +78,12 @@ public class RingBuffer {
         int bufferSize = available;
         int readIndex = readPos;
         if (this.vibratoRate == 0){
-            this.vibratoRate = this.buffer.length / (fileRate*2);
+            this.vibratoRate = this.buffer.length / (fileRate);
         }
         for (int i = 0; i < bufferSize; i++) {
             short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
             double currentTime = i / (fileRate*2);
-            double currentSine = Math.sin(2*Math.PI*currentTime*speedFactor);
+            double currentSine = Math.sin(2*Math.PI*currentTime*speedFactor*this.vibratoRate);
             sample = (short)(sample + currentSine*sample*decayFactor);
             buffer[readIndex] = (byte)(sample & 0xFF);
             buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);
