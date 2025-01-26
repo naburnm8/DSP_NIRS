@@ -24,7 +24,7 @@ public class MP3Converter {
                     baseFormat.getChannels(),
                     baseFormat.getChannels() * 2,
                     baseFormat.getSampleRate(),
-                    false // Little-endian
+                    false
             );
             AudioInputStream pcmStream = AudioSystem.getAudioInputStream(decodedFormat, mp3Stream);
             AudioSystem.write(pcmStream, AudioFileFormat.Type.WAVE, new File(outputFile));

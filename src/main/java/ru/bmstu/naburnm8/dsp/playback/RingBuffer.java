@@ -63,7 +63,7 @@ public class RingBuffer {
             }
             short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
 
-            short delayedSample = (short)((buffer[((bufferSize + readIndex) - delayInBytes) % bufferSize] & 0xFF) | (buffer[((bufferSize + readIndex) - delayInBytes + 1) % bufferSize] << 8));
+            short delayedSample = (short)((buffer[((bufferSize + readIndex) - (delayInBytes / 2) ) % bufferSize] & 0xFF) | (buffer[((bufferSize + readIndex) - (delayInBytes / 2) + 1) % bufferSize] << 8));
             sample = (short) (sample + delayedSample*decayFactor);
 
             //sample = (short) (Math.max(Math.min(sample + delayedSample*decayFactor, Short.MAX_VALUE), Short.MAX_VALUE));
@@ -78,12 +78,12 @@ public class RingBuffer {
         int bufferSize = available;
         int readIndex = readPos;
         if (this.vibratoRate == 0){
-            this.vibratoRate = this.buffer.length / (fileRate);
+            this.vibratoRate = this.buffer.length / (fileRate * 2);
         }
         for (int i = 0; i < bufferSize; i++) {
             short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
             double currentTime = i / (fileRate*2);
-            double currentSine = Math.sin(2*Math.PI*currentTime*speedFactor*this.vibratoRate);
+            double currentSine = Math.sin(2*Math.PI*currentTime*speedFactor*(1/this.vibratoRate));
             sample = (short)(sample + currentSine*sample*decayFactor);
             buffer[readIndex] = (byte)(sample & 0xFF);
             buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);
