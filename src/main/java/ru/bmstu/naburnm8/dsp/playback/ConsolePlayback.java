@@ -7,7 +7,7 @@ import javax.sound.sampled.AudioFormat;
 
 public class ConsolePlayback {
     public static void main(String[] args){
-        String path = "juice.wav";
+        String path = "electroswing.wav";
         int ringBufSize = 131072;
         try{
             AudioLoader loader = new AudioLoader(path);

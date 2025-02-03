@@ -63,7 +63,7 @@ public class RingBuffer {
             }
             short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
 
-            short delayedSample = (short)((buffer[((bufferSize + readIndex) - (delayInBytes / 2) ) % bufferSize] & 0xFF) | (buffer[((bufferSize + readIndex) - (delayInBytes / 2) + 1) % bufferSize] << 8));
+            short delayedSample = (short)((buffer[((bufferSize + readIndex) - (delayInBytes) ) % bufferSize] & 0xFF) | (buffer[((bufferSize + readIndex) - (delayInBytes) + 1) % bufferSize] << 8));
             sample = (short) (sample + delayedSample*decayFactor);
 
             //sample = (short) (Math.max(Math.min(sample + delayedSample*decayFactor, Short.MAX_VALUE), Short.MAX_VALUE));
@@ -91,9 +91,12 @@ public class RingBuffer {
         }
     }
 
+
+
     public void applyVolume1Byte(double volume) {
         for (int i = 0; i < buffer.length; i++) {
             buffer[i] = (byte)(buffer[i] * volume);
         }
     }
 }
+
