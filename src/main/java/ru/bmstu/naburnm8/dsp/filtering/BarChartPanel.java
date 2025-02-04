@@ -8,7 +8,7 @@ public class BarChartPanel extends JPanel {
     private double[] data;
     private Color barColor;
     private String title;
-    private int maxBarsToDisplay; // Maximum number of bars to display
+    private int maxBarsToDisplay;
 
     public BarChartPanel(double[] data, Color barColor, String title, int maxBarsToDisplay) {
         this.data = data;
@@ -49,8 +49,8 @@ public class BarChartPanel extends JPanel {
         for (int i = 0; i < aggregatedData.length; i++) {
             int barHeight = (int) ((aggregatedData[i] / maxValue) * maxBarHeight);
             int x = i * barWidth;
-            int y = height - barHeight - 30; // Leave space for labels
-            g.fillRect(x, y, barWidth - 2, barHeight); // Subtract 2 for spacing between bars
+            int y = height - barHeight - 30;
+            g.fillRect(x, y, barWidth - 2, barHeight);
 
             if (aggregatedData.length <= 50) {
                 g.setColor(Color.BLACK);
@@ -78,8 +78,8 @@ public class BarChartPanel extends JPanel {
             for (int j = start; j < end; j++) {
                 sum += data[j];
             }
-            aggregatedData[i] = sum / (end - start); // Use average
-            // можно по максимальным
+            aggregatedData[i] = sum / (end - start);
+            // using max values
             // aggregatedData[i] = Arrays.stream(data, start, end).max().orElse(0);
         }
 
