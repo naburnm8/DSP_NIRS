@@ -44,9 +44,6 @@ public class GUIPlayback extends Component {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
 
-        JFrame FFTframe = new JFrame("FFT");
-        FFTframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        FFTframe.setSize(600, 400);
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
@@ -154,8 +151,6 @@ public class GUIPlayback extends Component {
         frame.add(mainPanel);
         frame.setVisible(true);
 
-        //FFTframe.add(barChartPanel);
-        //FFTframe.setVisible(true);
     }
 
     private void openFilePicker() {

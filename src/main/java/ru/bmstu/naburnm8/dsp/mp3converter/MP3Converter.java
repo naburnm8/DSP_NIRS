@@ -1,4 +1,4 @@
-package ru.bmstu.naburnm8.dsp.files;
+package ru.bmstu.naburnm8.dsp.mp3converter;
 
 import javax.sound.sampled.*;
 import java.io.File;
