@@ -52,7 +52,7 @@ public class GUIPlayback extends Component {
         mainPanel.setLayout(new BorderLayout());
 
         double[] initialData = {10, 20, 30, 40, 50};
-        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "FFT");
+        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "FFT", 150);
 
 
         JPanel panel = new JPanel();

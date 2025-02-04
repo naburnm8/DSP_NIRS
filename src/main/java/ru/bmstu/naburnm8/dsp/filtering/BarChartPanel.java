@@ -8,16 +8,18 @@ public class BarChartPanel extends JPanel {
     private double[] data;
     private Color barColor;
     private String title;
+    private int maxBarsToDisplay; // Maximum number of bars to display
 
-    public BarChartPanel(double[] data, Color barColor, String title) {
+    public BarChartPanel(double[] data, Color barColor, String title, int maxBarsToDisplay) {
         this.data = data;
         this.barColor = barColor;
         this.title = title;
+        this.maxBarsToDisplay = maxBarsToDisplay;
     }
 
     public void setData(double[] newData) {
         this.data = newData;
-        repaint(); // Trigger a repaint to update the chart
+        repaint();
     }
 
     @Override
@@ -30,49 +32,82 @@ public class BarChartPanel extends JPanel {
 
         int width = getWidth();
         int height = getHeight();
-        int barWidth = width / data.length;
-        int maxBarHeight = height - 50; // Leave space for title and labels
+        int maxBarHeight = height - 50;
 
-        // Find the maximum value in the dataset to scale the bars
-        double maxValue = Arrays.stream(data).max().orElse(1);
+        double[] aggregatedData = aggregateData(data, maxBarsToDisplay);
 
-        // Draw the title
+        int barWidth = width / aggregatedData.length;
+
+        double maxValue = Arrays.stream(aggregatedData).max().orElse(1);
+
         g.setColor(Color.BLACK);
         g.setFont(new Font("SansSerif", Font.BOLD, 14));
         int titleWidth = g.getFontMetrics().stringWidth(title);
         g.drawString(title, (width - titleWidth) / 2, 20);
 
-        // Draw the bars
         g.setColor(barColor);
-        for (int i = 0; i < data.length; i++) {
-            int barHeight = (int) ((data[i] / maxValue) * maxBarHeight);
+        for (int i = 0; i < aggregatedData.length; i++) {
+            int barHeight = (int) ((aggregatedData[i] / maxValue) * maxBarHeight);
             int x = i * barWidth;
             int y = height - barHeight - 30; // Leave space for labels
             g.fillRect(x, y, barWidth - 2, barHeight); // Subtract 2 for spacing between bars
 
-            // Draw the value label
-            g.setColor(Color.BLACK);
-            String valueLabel = String.format("%.2f", data[i]);
-            int labelWidth = g.getFontMetrics().stringWidth(valueLabel);
-            g.drawString(valueLabel, x + (barWidth - labelWidth) / 2, y - 5);
-            g.setColor(barColor);
+            if (aggregatedData.length <= 50) {
+                g.setColor(Color.BLACK);
+                String valueLabel = String.format("%.2f", aggregatedData[i]);
+                int labelWidth = g.getFontMetrics().stringWidth(valueLabel);
+                g.drawString(valueLabel, x + (barWidth - labelWidth) / 2, y - 5);
+                g.setColor(barColor);
+            }
         }
+    }
+
+    private double[] aggregateData(double[] data, int maxBarsToDisplay) {
+        if (data.length <= maxBarsToDisplay) {
+            return data;
+        }
+
+        double[] aggregatedData = new double[maxBarsToDisplay];
+        int binSize = data.length / maxBarsToDisplay;
+
+        for (int i = 0; i < maxBarsToDisplay; i++) {
+            double sum = 0;
+            int start = i * binSize;
+            int end = (i == maxBarsToDisplay - 1) ? data.length : start + binSize;
+
+            for (int j = start; j < end; j++) {
+                sum += data[j];
+            }
+            aggregatedData[i] = sum / (end - start); // Use average
+            // можно по максимальным
+            // aggregatedData[i] = Arrays.stream(data, start, end).max().orElse(0);
+        }
+
+        return aggregatedData;
     }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Bar Chart Example");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
+        frame.setSize(800, 600);
 
-        double[] initialData = {10, 20, 30, 40, 50};
-        BarChartPanel barChartPanel = new BarChartPanel(initialData, Color.BLUE, "Sample Bar Chart");
+
+        double[] initialData = new double[32768];
+        for (int i = 0; i < initialData.length; i++) {
+            initialData[i] = Math.sin(i * 0.01) * 100 + 100; // Example data
+        }
+
+        BarChartPanel barChartPanel = new BarChartPanel(initialData, Color.BLUE, "Large Dataset Bar Chart", 100);
         frame.add(barChartPanel);
 
         frame.setVisible(true);
 
-        // Example of updating the dataset after a delay
+
         new Timer(3000, e -> {
-            double[] newData = {15, 25, 35, 45, 55};
+            double[] newData = new double[32768];
+            for (int i = 0; i < newData.length; i++) {
+                newData[i] = Math.cos(i * 0.01) * 100 + 100; // New example data
+            }
             barChartPanel.setData(newData);
         }).start();
     }
