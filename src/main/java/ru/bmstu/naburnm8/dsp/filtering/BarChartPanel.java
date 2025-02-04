@@ -37,6 +37,8 @@ public class BarChartPanel extends JPanel {
         double[] aggregatedData = aggregateData(data, maxBarsToDisplay);
 
         int barWidth = width / aggregatedData.length;
+        int totalBarsWidth = aggregatedData.length * barWidth;
+        int startX = (width - totalBarsWidth) / 2;
 
         double maxValue = Arrays.stream(aggregatedData).max().orElse(1);
 
@@ -48,9 +50,9 @@ public class BarChartPanel extends JPanel {
         g.setColor(barColor);
         for (int i = 0; i < aggregatedData.length; i++) {
             int barHeight = (int) ((aggregatedData[i] / maxValue) * maxBarHeight);
-            int x = i * barWidth;
+            int x = startX + i * barWidth;
             int y = height - barHeight - 30;
-            g.fillRect(x, y, barWidth - 2, barHeight);
+            g.fillRect(x, y, barWidth , barHeight);
 
             if (aggregatedData.length <= 50) {
                 g.setColor(Color.BLACK);

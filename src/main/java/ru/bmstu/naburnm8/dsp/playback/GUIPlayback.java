@@ -49,7 +49,7 @@ public class GUIPlayback extends Component {
         mainPanel.setLayout(new BorderLayout());
 
         double[] initialData = {10, 20, 30, 40, 50};
-        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "FFT", 150);
+        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "FFT", 500);
 
 
         JPanel panel = new JPanel();
@@ -190,6 +190,10 @@ public class GUIPlayback extends Component {
               }
               if (fullStop){
                   player.stop();
+              }
+              if (isPlaying){
+                  fullStop = true;
+                  isPlaying = false;
               }
           } catch (Exception e){
               e.printStackTrace();
