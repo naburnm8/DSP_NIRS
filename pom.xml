@@ -19,7 +19,6 @@
         <artifactId>mp3spi</artifactId>
         <version>1.9.5-1</version>
     </dependency>
-    <!-- Tritonus Share -->
     <dependency>
         <groupId>com.googlecode.soundlibs</groupId>
         <artifactId>tritonus-share</artifactId>
@@ -29,6 +28,16 @@
         <groupId>com.googlecode.soundlibs</groupId>
         <artifactId>tritonus-all</artifactId>
         <version>0.3.7.2</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-math3</artifactId>
+        <version>3.6.1</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jfree</groupId>
+        <artifactId>jfreechart</artifactId>
+        <version>1.5.3</version>
     </dependency>
 </dependencies>
 </project>

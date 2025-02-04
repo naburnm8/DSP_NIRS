@@ -12,6 +12,10 @@ public class RingBuffer {
         buffer = new byte[size];
     }
 
+    public byte[] getBuffer() {
+        return buffer;
+    }
+
     public synchronized void write(byte[] data, int offset, int length) {
         for (int i = 0; i < length; i++) {
             buffer[writePos] = data[offset + i];

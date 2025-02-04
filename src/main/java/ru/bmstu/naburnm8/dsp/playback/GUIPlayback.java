@@ -1,6 +1,15 @@
 package ru.bmstu.naburnm8.dsp.playback;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
 import ru.bmstu.naburnm8.dsp.files.AudioLoader;
+import ru.bmstu.naburnm8.dsp.filtering.BarChartPanel;
+import ru.bmstu.naburnm8.dsp.filtering.DataConverter;
+import ru.bmstu.naburnm8.dsp.filtering.FFT;
+
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.LineUnavailableException;
@@ -26,11 +35,25 @@ public class GUIPlayback extends Component {
     private boolean vibratoActive = false;
     private String selectedFilePath;
     private int lastLoaderBytes;
+    private float musicRate;
+
+    private BarChartPanel barChartPanel;
 
     public GUIPlayback() {
         JFrame frame = new JFrame("Music Player");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 200);
+        frame.setSize(800, 600);
+
+        JFrame FFTframe = new JFrame("FFT");
+        FFTframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        FFTframe.setSize(600, 400);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+
+        double[] initialData = {10, 20, 30, 40, 50};
+        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "FFT");
+
 
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout());
@@ -79,6 +102,10 @@ public class GUIPlayback extends Component {
                     try {
                         if(fullStop) {
                             initMusicPlayer();
+                            if(loader.getAudioFormat().getSampleSizeInBits() != 16){
+                                showErrorPopup(".wav file must be 16-bit!");
+                                return;
+                            }
                             fullStop = false;
                         }
                         isPlaying = true;
@@ -121,8 +148,14 @@ public class GUIPlayback extends Component {
         panel.add(echoToggle);
         panel.add(vibratoToggle);
 
-        frame.add(panel);
+        mainPanel.add(panel, BorderLayout.NORTH);
+        mainPanel.add(barChartPanel, BorderLayout.CENTER);
+
+        frame.add(mainPanel);
         frame.setVisible(true);
+
+        //FFTframe.add(barChartPanel);
+        //FFTframe.setVisible(true);
     }
 
     private void openFilePicker() {
@@ -135,6 +168,7 @@ public class GUIPlayback extends Component {
             File selectedFile = fileChooser.getSelectedFile();
             selectedFilePath = selectedFile.getAbsolutePath();
             System.out.println("Selected file: " + selectedFilePath);
+            fullStop = true;
         }
     }
     private void play(){
@@ -146,8 +180,16 @@ public class GUIPlayback extends Component {
                       ringBuffer.applyEcho(8192,0.3);
                   }
                   if (vibratoActive){
-                      ringBuffer.applyVibrato(44000, 0.75, 1);
+                      ringBuffer.applyVibrato(musicRate, 0.75, 1);
                   }
+                  Runnable fftDisplay = () -> {
+                    double[] fftSamples = FFT.toFrequencySpace(DataConverter.byteToShortArrayLIB(ringBuffer.getBuffer()));
+                    updateChart(fftSamples);
+                  };
+
+                  Thread fftThread = new Thread(fftDisplay);
+                  fftThread.setName("FFT");
+                  fftThread.start();
                   player.play();
                   lastLoaderBytes = loader.loadToBuffer(ringBuffer, RING_BUF_SIZE);
               }
@@ -167,6 +209,7 @@ public class GUIPlayback extends Component {
         player = new Player(format, RING_BUF_SIZE);
         ringBuffer = player.getRingBuffer();
         lastLoaderBytes = loader.loadToBuffer(ringBuffer, RING_BUF_SIZE);
+        musicRate = format.getSampleRate();
     }
     private void showErrorPopup(String message) {
         JOptionPane.showMessageDialog(
@@ -175,6 +218,9 @@ public class GUIPlayback extends Component {
                 "Attention",
                 JOptionPane.ERROR_MESSAGE
         );
+    }
+    private void updateChart(double[] fftSamples) {
+        barChartPanel.setData(fftSamples);
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GUIPlayback());
