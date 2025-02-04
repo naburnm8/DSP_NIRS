@@ -19,7 +19,7 @@ public class FFT {
         return fft.transform(doubleSamples, null);
     }
     private static double[] getAbs(Complex[] fftResults){
-        double[] abs = new double[fftResults.length / 2];
+        double[] abs = new double[fftResults.length / 4];
         for (int i = 0; i < abs.length; i++) {
             abs[i] = Math.log10(fftResults[i].abs());
         }

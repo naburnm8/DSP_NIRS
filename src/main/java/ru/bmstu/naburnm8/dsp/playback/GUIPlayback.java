@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class GUIPlayback extends Component {
-    private static final int RING_BUF_SIZE = 131072;
+    private static final int RING_BUF_SIZE = 65536;
 
     private Player player;
     private RingBuffer ringBuffer;
