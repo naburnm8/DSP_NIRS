@@ -3,6 +3,7 @@ package ru.bmstu.naburnm8.dsp.playback;
 
 public class RingBuffer {
     private final byte[] buffer;
+    private final byte[] prevBuffer;
     private int writePos = 0;
     private int readPos = 0;
     private int available = 0;
@@ -10,6 +11,7 @@ public class RingBuffer {
 
     public RingBuffer(int size) {
         buffer = new byte[size];
+        prevBuffer = new byte[size];
     }
 
     public byte[] getBuffer() {
@@ -18,6 +20,7 @@ public class RingBuffer {
 
     public synchronized void write(byte[] data, int offset, int length) {
         for (int i = 0; i < length; i++) {
+            prevBuffer[writePos] = buffer[writePos];
             buffer[writePos] = data[offset + i];
             writePos = (writePos + 1) % buffer.length;
             if (available < buffer.length) {
@@ -62,10 +65,16 @@ public class RingBuffer {
         int bufferSize = available;
         int readIndex = readPos;
         for (int i = 0; i < bufferSize; i++) {
-            if(i < delayInBytes){
+            short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
+            if(readIndex < delayInBytes){
+                int readOffset = delayInBytes - readIndex;
+                short delayedSample = (short)((prevBuffer[((bufferSize) - (readOffset) ) % bufferSize] & 0xFF) | (prevBuffer[((bufferSize) - (readOffset) + 1) % bufferSize] << 8));
+                sample = (short) (sample + delayedSample*decayFactor);
+                buffer[readIndex] = (byte)(sample & 0xFF);
+                buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);
+                readIndex = (readIndex + 2) % buffer.length;
                 continue;
             }
-            short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
 
             short delayedSample = (short)((buffer[((bufferSize + readIndex) - (delayInBytes) ) % bufferSize] & 0xFF) | (buffer[((bufferSize + readIndex) - (delayInBytes) + 1) % bufferSize] << 8));
             sample = (short) (sample + delayedSample*decayFactor);

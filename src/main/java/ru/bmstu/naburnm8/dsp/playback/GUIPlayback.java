@@ -21,6 +21,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class GUIPlayback extends Component {
     private static final int RING_BUF_SIZE = 65536;
@@ -178,8 +179,11 @@ public class GUIPlayback extends Component {
                       ringBuffer.applyVibrato(musicRate, 0.75, 1);
                   }
                   Runnable fftDisplay = () -> {
+
                     double[] fftSamples = FFT.toFrequencySpace(DataConverter.byteToShortArrayLIB(ringBuffer.getBuffer()));
                     updateChart(fftSamples);
+
+                      //driveFFTDisplay(ringBuffer.getBuffer());
                   };
 
                   Thread fftThread = new Thread(fftDisplay);
@@ -220,6 +224,35 @@ public class GUIPlayback extends Component {
     }
     private void updateChart(double[] fftSamples) {
         barChartPanel.setData(fftSamples);
+    }
+    private void driveFFTDisplay(byte[] bytes) {
+        // assume FFT output divided by 4
+        int n = RING_BUF_SIZE / 2;
+        n = n / 2; //screen updates 10 times per buffer
+        System.out.println(n);
+        ArrayList<byte[]> chunks = new ArrayList<>();
+        byte[] currentChunk = new byte[n];
+        for (int i = 0; i < bytes.length; i++) {
+            if (i % n == 0 && i != 0) {
+                chunks.add(currentChunk);
+                currentChunk = new byte[n];
+            }
+            else{
+                currentChunk[i % n] = bytes[i];
+            }
+        }
+        System.out.println(chunks.size());
+
+        for (byte[] chunk : chunks) {
+            try {
+                int currentSleepRate = (int) (((loader.getAudioFormat().getSampleRate() / RING_BUF_SIZE) / 2) * 1000);
+                Thread.sleep(currentSleepRate);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            double[] fftSamples = FFT.toFrequencySpace(DataConverter.byteToShortArrayLIB(chunk));
+            updateChart(fftSamples);
+        }
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GUIPlayback());
