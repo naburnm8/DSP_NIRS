@@ -15,6 +15,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -25,6 +26,8 @@ import java.util.ArrayList;
 
 public class GUIPlayback extends Component {
     private static final int RING_BUF_SIZE = 65536;
+    private static final String label = "Music Player, now playing: ";
+    private static final String staticLabel = "Music Player";
 
     private Player player;
     private RingBuffer ringBuffer;
@@ -37,20 +40,27 @@ public class GUIPlayback extends Component {
     private String selectedFilePath;
     private int lastLoaderBytes;
     private float musicRate;
+    private final ArrayList<Integer> bandLevels; // will be used for filters
+    private final ArrayList<JLabel> bandLabels;
 
-    private BarChartPanel barChartPanel;
+    private double echoIntensity = 0.3;
+    private int echoDepth = 8192;
+    private double vibratoDecay = 0.75;
+    private double vibratoSpeed = 1;
+
+    private final BarChartPanel barChartPanel;
 
     public GUIPlayback() {
         JFrame frame = new JFrame("Music Player");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600);
+        frame.setSize(2048, 1024);
 
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
         double[] initialData = {10, 20, 30, 40, 50};
-        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "FFT", 500);
+        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "FFT", 750);
 
 
         JPanel panel = new JPanel();
@@ -66,6 +76,96 @@ public class GUIPlayback extends Component {
         volumeSlider.setPaintLabels(true);
         JToggleButton echoToggle = new JToggleButton("Echo");
         JToggleButton vibratoToggle = new JToggleButton("Vibrato");
+
+        JPanel bandPanel = new JPanel();
+        bandPanel.setLayout(new BoxLayout(bandPanel, BoxLayout.Y_AXIS));
+        bandLevels = new ArrayList<>();
+        bandLabels = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++){
+            JSlider newSlider = new JSlider(-60, 0, 0);
+            newSlider.setMajorTickSpacing(10);
+            newSlider.setPaintTicks(true);
+            newSlider.setPaintLabels(true);
+            JLabel bandLabel = new JLabel("Band " + (i+1) + " level");
+
+            int finalI = i;
+            newSlider.addChangeListener(e -> {
+                changeBandLevel(finalI, newSlider.getValue());
+            });
+            JPanel sliderPanel = new JPanel();
+            sliderPanel.setLayout(new FlowLayout());
+            sliderPanel.add(newSlider);
+            JLabel indicator = new JLabel("0");
+            sliderPanel.add(indicator);
+            bandLabels.add(indicator);
+            bandPanel.add(bandLabel);
+            bandPanel.add(sliderPanel);
+            bandLevels.add(0);
+        }
+
+        JSlider echoIntensity = new JSlider(10, 100, 30);
+        JSlider echoDepth = new JSlider(0,16384, 4096); // in samples
+        JSlider vibratoDecay = new JSlider(0, 100, 75);
+        JSlider vibratoSpeed = new JSlider(0, 300, 100);
+
+        echoIntensity.setMajorTickSpacing(10);
+        echoDepth.setMajorTickSpacing(4096);
+        echoIntensity.setPaintTicks(true);
+        echoIntensity.setPaintLabels(true);
+        echoDepth.setPaintLabels(true);
+        echoDepth.setPaintTicks(true);
+
+        vibratoDecay.setMajorTickSpacing(25);
+        vibratoDecay.setPaintTicks(true);
+        vibratoDecay.setPaintLabels(true);
+
+        vibratoSpeed.setMajorTickSpacing(50);
+        vibratoSpeed.setPaintTicks(true);
+        vibratoSpeed.setPaintLabels(true);
+
+        echoIntensity.addChangeListener(e -> {
+            this.echoIntensity = (double) echoIntensity.getValue() / 100;
+        });
+
+        echoDepth.addChangeListener(e -> {
+            this.echoDepth = echoDepth.getValue() * 2;
+        });
+
+        vibratoDecay.addChangeListener(e -> {
+            this.vibratoDecay = (double) vibratoDecay.getValue() / 100;
+        });
+
+        vibratoSpeed.addChangeListener(e -> {
+            this.vibratoSpeed = (double) vibratoSpeed.getValue() / 100;
+        });
+
+        JPanel effectsPanel = new JPanel();
+        effectsPanel.setLayout(new BoxLayout(effectsPanel, BoxLayout.PAGE_AXIS));
+
+
+        JLabel echoIntText = new JLabel("Echo intensity, %");
+        JLabel echoDepthText = new JLabel("Echo depth, samples");
+        JLabel vibratoDecayText = new JLabel("Vibrato decay, %");
+        JLabel vibratoSpeedText = new JLabel("Vibrato speed, %");
+
+        JPanel effectButtons = new JPanel();
+        effectButtons.setLayout(new BoxLayout(effectButtons, BoxLayout.X_AXIS));
+        effectButtons.setSize(200, 50);
+        effectButtons.add(echoToggle);
+        effectButtons.add(vibratoToggle);
+
+        effectsPanel.add(effectButtons);
+        effectsPanel.add(echoIntensity);
+        effectsPanel.add(echoIntText);
+        effectsPanel.add(echoDepth);
+        effectsPanel.add(echoDepthText);
+        effectsPanel.add(vibratoDecay);
+        effectsPanel.add(vibratoDecayText);
+        effectsPanel.add(vibratoSpeed);
+        effectsPanel.add(vibratoSpeedText);
+
+
 
         filePickButton.addActionListener(new ActionListener() {
             @Override
@@ -106,6 +206,8 @@ public class GUIPlayback extends Component {
                             }
                             fullStop = false;
                         }
+                        String fileName = selectedFilePath.split(File.pathSeparator)[selectedFilePath.split(File.pathSeparator).length - 1];
+                        frame.setTitle(label + fileName);
                         isPlaying = true;
                         play();
                     } catch (Exception ex) {
@@ -121,6 +223,8 @@ public class GUIPlayback extends Component {
             public void actionPerformed(ActionEvent e) {
                 if (isPlaying) {
                     isPlaying = false;
+                    String fileName = selectedFilePath.split(File.pathSeparator)[selectedFilePath.split(File.pathSeparator).length - 1];
+                    frame.setTitle(label + fileName + " paused");
                 }
             }
         });
@@ -131,7 +235,11 @@ public class GUIPlayback extends Component {
                 if (isPlaying) {
                     fullStop = true;
                     isPlaying = false;
+                    frame.setTitle(staticLabel);
+                    return;
                 }
+                fullStop = true;
+                frame.setTitle(staticLabel);
             }
         });
 
@@ -143,11 +251,12 @@ public class GUIPlayback extends Component {
         panel.add(pauseButton);
         panel.add(stopButton);
         panel.add(volumeSlider);
-        panel.add(echoToggle);
-        panel.add(vibratoToggle);
+
 
         mainPanel.add(panel, BorderLayout.NORTH);
         mainPanel.add(barChartPanel, BorderLayout.CENTER);
+        mainPanel.add(bandPanel, BorderLayout.EAST);
+        mainPanel.add(effectsPanel, BorderLayout.WEST);
 
         frame.add(mainPanel);
         frame.setVisible(true);
@@ -173,10 +282,10 @@ public class GUIPlayback extends Component {
               while (lastLoaderBytes > 0 && isPlaying){
                   ringBuffer.applyVolume(currentVolume);
                   if (echoActive){
-                      ringBuffer.applyEcho(8192,0.3);
+                      ringBuffer.applyEcho(echoDepth, echoIntensity);
                   }
                   if (vibratoActive){
-                      ringBuffer.applyVibrato(musicRate, 0.75, 1);
+                      ringBuffer.applyVibrato(musicRate, vibratoDecay, vibratoSpeed);
                   }
                   Runnable fftDisplay = () -> {
 
@@ -253,6 +362,11 @@ public class GUIPlayback extends Component {
             double[] fftSamples = FFT.toFrequencySpace(DataConverter.byteToShortArrayLIB(chunk));
             updateChart(fftSamples);
         }
+    }
+    private void changeBandLevel(int i, int bandLevel){
+        bandLevels.set(i, bandLevel);
+        bandLabels.get(i).setText(bandLevel + "");
+        //System.out.println(bandLevels);
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GUIPlayback());
