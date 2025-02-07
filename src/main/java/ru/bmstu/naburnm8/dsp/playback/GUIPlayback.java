@@ -124,21 +124,13 @@ public class GUIPlayback extends Component {
         vibratoSpeed.setPaintTicks(true);
         vibratoSpeed.setPaintLabels(true);
 
-        echoIntensity.addChangeListener(e -> {
-            this.echoIntensity = (double) echoIntensity.getValue() / 100;
-        });
+        echoIntensity.addChangeListener(e -> this.echoIntensity = (double) echoIntensity.getValue() / 100);
 
-        echoDepth.addChangeListener(e -> {
-            this.echoDepth = echoDepth.getValue() * 2;
-        });
+        echoDepth.addChangeListener(e -> this.echoDepth = echoDepth.getValue() * 2);
 
-        vibratoDecay.addChangeListener(e -> {
-            this.vibratoDecay = (double) vibratoDecay.getValue() / 100;
-        });
+        vibratoDecay.addChangeListener(e -> this.vibratoDecay = (double) vibratoDecay.getValue() / 100);
 
-        vibratoSpeed.addChangeListener(e -> {
-            this.vibratoSpeed = (double) vibratoSpeed.getValue() / 100;
-        });
+        vibratoSpeed.addChangeListener(e -> this.vibratoSpeed = (double) vibratoSpeed.getValue() / 100);
 
         JPanel effectsPanel = new JPanel();
         effectsPanel.setLayout(new BoxLayout(effectsPanel, BoxLayout.PAGE_AXIS));
@@ -167,85 +159,59 @@ public class GUIPlayback extends Component {
 
 
 
-        filePickButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openFilePicker();
-            }
-        });
+        filePickButton.addActionListener(e -> openFilePicker());
 
-        echoToggle.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                echoActive = !echoActive;
-            }
-        });
+        echoToggle.addActionListener(e -> echoActive = !echoActive);
 
-        vibratoToggle.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                vibratoActive = !vibratoActive;
-            }
-        });
+        vibratoToggle.addActionListener(e -> vibratoActive = !vibratoActive);
 
-        playButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!isPlaying) {
+        playButton.addActionListener(e -> {
+            if (!isPlaying) {
 
-                    if(selectedFilePath == null) {
-                        showErrorPopup("No file selected");
-                        return;
-                    }
-                    try {
-                        if(fullStop) {
-                            initMusicPlayer();
-                            if(loader.getAudioFormat().getSampleSizeInBits() != 16){
-                                showErrorPopup(".wav file must be 16-bit!");
-                                return;
-                            }
-                            fullStop = false;
-                        }
-                        String fileName = selectedFilePath.split(File.pathSeparator)[selectedFilePath.split(File.pathSeparator).length - 1];
-                        frame.setTitle(label + fileName);
-                        isPlaying = true;
-                        play();
-                    } catch (Exception ex) {
-                        showErrorPopup(ex.toString());
-                    }
-
-                }
-            }
-        });
-
-        pauseButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (isPlaying) {
-                    isPlaying = false;
-                    String fileName = selectedFilePath.split(File.pathSeparator)[selectedFilePath.split(File.pathSeparator).length - 1];
-                    frame.setTitle(label + fileName + " paused");
-                }
-            }
-        });
-
-        stopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (isPlaying) {
-                    fullStop = true;
-                    isPlaying = false;
-                    frame.setTitle(staticLabel);
+                if(selectedFilePath == null) {
+                    showErrorPopup("No file selected");
                     return;
                 }
-                fullStop = true;
-                frame.setTitle(staticLabel);
+                try {
+                    if(fullStop) {
+                        initMusicPlayer();
+                        if(loader.getAudioFormat().getSampleSizeInBits() != 16){
+                            showErrorPopup(".wav file must be 16-bit!");
+                            return;
+                        }
+                        fullStop = false;
+                    }
+                    String fileName = selectedFilePath.split(File.pathSeparator)[selectedFilePath.split(File.pathSeparator).length - 1];
+                    frame.setTitle(label + fileName);
+                    isPlaying = true;
+                    play();
+                } catch (Exception ex) {
+                    showErrorPopup(ex.toString());
+                }
+
             }
         });
 
-        volumeSlider.addChangeListener(e -> {
-            currentVolume = volumeSlider.getValue() / 100.0f;
+        pauseButton.addActionListener(e -> {
+            if (isPlaying) {
+                isPlaying = false;
+                String fileName = selectedFilePath.split(File.pathSeparator)[selectedFilePath.split(File.pathSeparator).length - 1];
+                frame.setTitle(label + fileName + " paused");
+            }
         });
+
+        stopButton.addActionListener(e -> {
+            if (isPlaying) {
+                fullStop = true;
+                isPlaying = false;
+                frame.setTitle(staticLabel);
+                return;
+            }
+            fullStop = true;
+            frame.setTitle(staticLabel);
+        });
+
+        volumeSlider.addChangeListener(e -> currentVolume = volumeSlider.getValue() / 100.0f);
         panel.add(filePickButton);
         panel.add(playButton);
         panel.add(pauseButton);
@@ -334,7 +300,8 @@ public class GUIPlayback extends Component {
     private void updateChart(double[] fftSamples) {
         barChartPanel.setData(fftSamples);
     }
-    private void driveFFTDisplay(byte[] bytes) {
+
+    private void driveFFTDisplay(byte[] bytes) {  // TODO: FIX FFT UPDATES
         // assume FFT output divided by 4
         int n = RING_BUF_SIZE / 2;
         n = n / 2; //screen updates 10 times per buffer
@@ -369,6 +336,6 @@ public class GUIPlayback extends Component {
         //System.out.println(bandLevels);
     }
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new GUIPlayback());
+        SwingUtilities.invokeLater(GUIPlayback::new);
     }
 }
