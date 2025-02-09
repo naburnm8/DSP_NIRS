@@ -33,7 +33,7 @@ public class FFT {
     private static double[] getAbs(Complex[] fftResults){
         double[] abs = new double[fftResults.length / 4];
         for (int i = 0; i < abs.length; i++) {
-            abs[i] = 20*Math.log10(fftResults[i].abs());
+            abs[i] = 20*Math.log10(fftResults[i].abs()) / 7;
         }
         return abs;
     }

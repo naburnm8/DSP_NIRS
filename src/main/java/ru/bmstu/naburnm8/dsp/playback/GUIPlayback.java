@@ -6,9 +6,11 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import ru.bmstu.naburnm8.dsp.files.AudioLoader;
+import ru.bmstu.naburnm8.dsp.files.FilterParser;
 import ru.bmstu.naburnm8.dsp.filtering.BarChartPanel;
 import ru.bmstu.naburnm8.dsp.filtering.DataConverter;
 import ru.bmstu.naburnm8.dsp.filtering.FFT;
+import ru.bmstu.naburnm8.dsp.filtering.Filter;
 
 
 import javax.sound.sampled.AudioFormat;
@@ -40,7 +42,8 @@ public class GUIPlayback extends Component {
     private String selectedFilePath;
     private int lastLoaderBytes;
     private float musicRate;
-    private final ArrayList<Integer> bandLevels; // will be used for filters
+    private final ArrayList<Integer> bandLevels;
+    private final ArrayList<Filter> filters;
     private final ArrayList<JLabel> bandLabels;
 
     private double echoIntensity = 0.3;
@@ -50,7 +53,16 @@ public class GUIPlayback extends Component {
 
     private final BarChartPanel barChartPanel;
 
+    private boolean filteringActive = true;
+
     public GUIPlayback() {
+        filters = new ArrayList<>(FilterParser.parseFilters());
+
+        if (filters.size() != 10){
+            System.err.println("Error while parsing filters");
+            System.exit(-1);
+        }
+
         JFrame frame = new JFrame("Music Player");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(2048, 1024);
@@ -83,7 +95,7 @@ public class GUIPlayback extends Component {
         bandLabels = new ArrayList<>();
 
         for (int i = 0; i < 10; i++){
-            JSlider newSlider = new JSlider(-60, 0, 0);
+            JSlider newSlider = new JSlider(-70, 0, 0);
             newSlider.setMajorTickSpacing(10);
             newSlider.setPaintTicks(true);
             newSlider.setPaintLabels(true);
@@ -133,7 +145,7 @@ public class GUIPlayback extends Component {
         vibratoSpeed.addChangeListener(e -> this.vibratoSpeed = (double) vibratoSpeed.getValue() / 100);
 
         JPanel effectsPanel = new JPanel();
-        effectsPanel.setLayout(new BoxLayout(effectsPanel, BoxLayout.PAGE_AXIS));
+        effectsPanel.setLayout(new BoxLayout(effectsPanel, BoxLayout.Y_AXIS));
 
 
         JLabel echoIntText = new JLabel("Echo intensity, %");
@@ -148,15 +160,23 @@ public class GUIPlayback extends Component {
         effectButtons.add(vibratoToggle);
 
         effectsPanel.add(effectButtons);
-        effectsPanel.add(echoIntensity);
-        effectsPanel.add(echoIntText);
-        effectsPanel.add(echoDepth);
-        effectsPanel.add(echoDepthText);
-        effectsPanel.add(vibratoDecay);
-        effectsPanel.add(vibratoDecayText);
-        effectsPanel.add(vibratoSpeed);
-        effectsPanel.add(vibratoSpeedText);
 
+        effectsPanel.add(echoIntText);
+        effectsPanel.add(echoIntensity);
+
+        effectsPanel.add(echoDepthText);
+        effectsPanel.add(echoDepth);
+
+        effectsPanel.add(vibratoDecayText);
+        effectsPanel.add(vibratoDecay);
+
+        effectsPanel.add(vibratoSpeedText);
+        effectsPanel.add(vibratoSpeed);
+
+
+        JToggleButton filteringToggle = new JToggleButton("Filtering");
+        filteringToggle.setSelected(true);
+        filteringToggle.addActionListener(e -> filteringActive = !filteringActive);
 
 
         filePickButton.addActionListener(e -> openFilePicker());
@@ -217,7 +237,7 @@ public class GUIPlayback extends Component {
         panel.add(pauseButton);
         panel.add(stopButton);
         panel.add(volumeSlider);
-
+        panel.add(filteringToggle);
 
         mainPanel.add(panel, BorderLayout.NORTH);
         mainPanel.add(barChartPanel, BorderLayout.CENTER);
@@ -247,6 +267,9 @@ public class GUIPlayback extends Component {
           try{
               while (lastLoaderBytes > 0 && isPlaying){
                   ringBuffer.applyVolume(currentVolume);
+                  if (filteringActive){
+                      ringBuffer.applyFilters(filters);
+                  }
                   if (echoActive){
                       ringBuffer.applyEcho(echoDepth, echoIntensity);
                   }
@@ -331,9 +354,9 @@ public class GUIPlayback extends Component {
         }
     }
     private void changeBandLevel(int i, int bandLevel){
-        bandLevels.set(i, bandLevel);
+        filters.get(i).setLevelInDB(bandLevel);
         bandLabels.get(i).setText(bandLevel + "");
-        //System.out.println(bandLevels);
+        //System.out.println(filters);
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(GUIPlayback::new);

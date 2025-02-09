@@ -1,6 +1,10 @@
 package ru.bmstu.naburnm8.dsp.playback;
 
 
+import ru.bmstu.naburnm8.dsp.filtering.Filter;
+
+import java.util.List;
+
 public class RingBuffer {
     private final byte[] buffer;
     private final byte[] prevBuffer;
@@ -104,7 +108,9 @@ public class RingBuffer {
         }
     }
 
-
+    public synchronized void applyFilters(List<Filter> filterChain){ // not implemented yet
+        System.out.println("Tried to filter!");
+    }
 
     public void applyVolume1Byte(double volume) {
         for (int i = 0; i < buffer.length; i++) {
