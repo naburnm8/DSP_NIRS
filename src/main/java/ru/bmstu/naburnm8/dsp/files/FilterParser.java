@@ -10,7 +10,7 @@ public class FilterParser {
     public static List<Filter> parseFilters(){ // not implemented properly yet
         ArrayList<Filter> filters = new ArrayList<>();
         for (int i = 0; i < 10; i++){
-            filters.add(new Filter(new double[]{1,0}, new double[]{1,1}, 65536));
+            filters.add(new Filter(new double[]{1,0}, new double[]{1,1}, 100));
         }
         return filters;
     }

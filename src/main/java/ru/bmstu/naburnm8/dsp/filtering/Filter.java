@@ -36,10 +36,22 @@ public class Filter {
 
     private double level;
     private final double[] impulseResponse;
+    private final String type;
 
-    public Filter(double[] numerator, double[] denominator, int RING_BUF_LENGTH){
+    public Filter(double[] numerator, double[] denominator, int impulseResponseLength){
         this.level = 1;
-        this.impulseResponse = computeImpulseResponse(numerator, denominator, RING_BUF_LENGTH / 2);
+        this.impulseResponse = computeImpulseResponse(numerator, denominator, impulseResponseLength);
+        this.type = "IIR";
+    }
+
+    public Filter(double[] impulseResponse){
+        this.level = 1;
+        this.impulseResponse = impulseResponse;
+        this.type = "FIR";
+    }
+
+    public String getType(){
+        return type;
     }
 
 
