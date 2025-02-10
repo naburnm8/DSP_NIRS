@@ -1,10 +1,5 @@
 package ru.bmstu.naburnm8.dsp.playback;
 
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.category.DefaultCategoryDataset;
 import ru.bmstu.naburnm8.dsp.files.AudioLoader;
 import ru.bmstu.naburnm8.dsp.files.FilterParser;
 import ru.bmstu.naburnm8.dsp.filtering.BarChartPanel;
@@ -17,11 +12,8 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +34,6 @@ public class GUIPlayback extends Component {
     private String selectedFilePath;
     private int lastLoaderBytes;
     private float musicRate;
-    private final ArrayList<Integer> bandLevels;
     private final ArrayList<Filter> filters;
     private final ArrayList<JLabel> bandLabels;
 
@@ -72,7 +63,7 @@ public class GUIPlayback extends Component {
         mainPanel.setLayout(new BorderLayout());
 
         double[] initialData = {10, 20, 30, 40, 50};
-        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "FFT", 750);
+        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "Spectrum", 750);
 
 
         JPanel panel = new JPanel();
@@ -91,7 +82,7 @@ public class GUIPlayback extends Component {
 
         JPanel bandPanel = new JPanel();
         bandPanel.setLayout(new BoxLayout(bandPanel, BoxLayout.Y_AXIS));
-        bandLevels = new ArrayList<>();
+
         bandLabels = new ArrayList<>();
 
         for (int i = 0; i < 10; i++){
@@ -113,7 +104,7 @@ public class GUIPlayback extends Component {
             bandLabels.add(indicator);
             bandPanel.add(bandLabel);
             bandPanel.add(sliderPanel);
-            bandLevels.add(0);
+
         }
 
         JSlider echoIntensity = new JSlider(10, 100, 30);

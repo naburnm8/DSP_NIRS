@@ -7,7 +7,7 @@ import java.util.Arrays;
 public class BarChartPanel extends JPanel {
     private double[] data;
     private Color barColor;
-    private String title;
+    private final String title;
     private int maxBarsToDisplay;
 
     public BarChartPanel(double[] data, Color barColor, String title, int maxBarsToDisplay) {
