@@ -115,11 +115,10 @@ public class RingBuffer {
 
     public synchronized void applyFilters(List<Filter> filterChain) throws ExecutionException, InterruptedException {
         short[] inputTransformed = DataConverter.byteToShortArrayLIB(buffer);
-        short[] filtered = new short[inputTransformed.length]; // Use the same size as input
+        short[] filtered = new short[inputTransformed.length];
 
         int numberOfTasks = filterChain.size();
 
-        // Set input data for each filter (assuming filters are thread-safe or independent)
         for (Filter filter : filterChain) {
             filter.setInputData(inputTransformed);
         }
@@ -129,24 +128,24 @@ public class RingBuffer {
         List<Future<short[]>> futures = executor.invokeAll(filterChain);
 
 
-        // Wait for all tasks to complete and sum the results
+
         for (Future<short[]> future : futures) {
-            short[] result = future.get(); // This will block until the task is done
+            short[] result = future.get();
             for (int i = 0; i < filtered.length; i++) {
-                filtered[i] += result[i]; // Sum the results dynamically
+                filtered[i] += result[i];
             }
         }
 
-        // Shutdown the executor
+
         executor.shutdown();
 
-        // Write the filtered data back to the buffer
+
         int bufferSize = available;
         int readIndex = readPos;
 
         for (int i = 0; i < bufferSize; i++) {
             if (readIndex >= filtered.length) {
-                break; // Stop if we've processed all filtered data
+                break;
             }
             short sample = filtered[readIndex];
             buffer[readIndex * 2] = (byte) (sample & 0xFF);

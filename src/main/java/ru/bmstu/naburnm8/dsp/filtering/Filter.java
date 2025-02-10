@@ -10,13 +10,11 @@ public class Filter implements Callable<short[]> {
     public static double[] computeImpulseResponse(double[] numerator, double[] denominator, int length){
         double[] impulseResponse = new double[length];
         double[] input = new double[length];
-        input[0] = 1.0; // Impulse input
+        input[0] = 1.0;
 
-        // Apply the filter to the impulse input
         for (int n = 0; n < length; n++) {
             double output = 0.0;
 
-            // Compute the output using the difference equation
             for (int k = 0; k < numerator.length; k++) {
                 if (n - k >= 0) {
                     output += numerator[k] * input[n - k];
