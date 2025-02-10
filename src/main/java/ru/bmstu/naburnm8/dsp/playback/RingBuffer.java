@@ -113,41 +113,46 @@ public class RingBuffer {
         }
     }
 
-    public synchronized void applyFilters(List<Filter> filterChain) throws ExecutionException, InterruptedException { // not implemented yet
-        short[] filtered = new short[buffer.length / 2];
+    public synchronized void applyFilters(List<Filter> filterChain) throws ExecutionException, InterruptedException {
         short[] inputTransformed = DataConverter.byteToShortArrayLIB(buffer);
+        short[] filtered = new short[inputTransformed.length]; // Use the same size as input
 
         int numberOfTasks = filterChain.size();
 
-        for (Filter filter: filterChain){
+        // Set input data for each filter (assuming filters are thread-safe or independent)
+        for (Filter filter : filterChain) {
             filter.setInputData(inputTransformed);
         }
+
+        // Submit all tasks to the executor
         ExecutorService executor = Executors.newFixedThreadPool(numberOfTasks);
-        Future<short[]>[] fs = new Future[numberOfTasks];
-        for (int i = 0; i < numberOfTasks; i++) {
-            fs[i] = executor.submit(filterChain.get(i));
+        List<Future<short[]>> futures = executor.invokeAll(filterChain);
+
+
+        // Wait for all tasks to complete and sum the results
+        for (Future<short[]> future : futures) {
+            short[] result = future.get(); // This will block until the task is done
+            for (int i = 0; i < filtered.length; i++) {
+                filtered[i] += result[i]; // Sum the results dynamically
+            }
         }
 
+        // Shutdown the executor
+        executor.shutdown();
 
-
-        for (int i = 0; i < filtered.length; i++) {
-            filtered[i] += (short) (fs[0].get()[i] + fs[1].get()[i] + fs[2].get()[i] + fs[3].get()[i] + fs[4].get()[i] + fs[5].get()[i] + fs[6].get()[i] + fs[7].get()[i] + fs[8].get()[i] + fs[9].get()[i]); ;
-        }
-
+        // Write the filtered data back to the buffer
         int bufferSize = available;
         int readIndex = readPos;
 
         for (int i = 0; i < bufferSize; i++) {
-            if (readIndex == bufSize/2){
-                continue;
+            if (readIndex >= filtered.length) {
+                break; // Stop if we've processed all filtered data
             }
             short sample = filtered[readIndex];
-            buffer[readIndex] = (byte)(sample & 0xFF);
-            buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);
-            readIndex = (readIndex + 2) % buffer.length;
+            buffer[readIndex * 2] = (byte) (sample & 0xFF);
+            buffer[(readIndex * 2) + 1] = (byte) ((sample >> 8) & 0xFF);
+            readIndex = (readIndex + 1) % (filtered.length);
         }
-
-
     }
 
     public void applyVolume1Byte(double volume) {

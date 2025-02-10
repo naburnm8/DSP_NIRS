@@ -81,7 +81,7 @@ public class Filter implements Callable<short[]> {
         for (int i = 0; i < input.length - this.impulseResponse.length; i++) {
             for (int j = 0; j < this.impulseResponse.length; j++) {
                 int multi = (int) (input[i] * this.impulseResponse[j]);
-                output[i+j] = (short) (multi * level);
+                output[i+j] += (short) (multi * level);
             }
         }
         return output;
