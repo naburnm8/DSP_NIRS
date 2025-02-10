@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class GUIPlayback extends Component {
-    private static final int RING_BUF_SIZE = 65536;
+    private static final int RING_BUF_SIZE = 131072;
     private static final String label = "Music Player, now playing: ";
     private static final String staticLabel = "Music Player";
 
@@ -56,7 +56,7 @@ public class GUIPlayback extends Component {
     private boolean filteringActive = true;
 
     public GUIPlayback() {
-        filters = new ArrayList<>(FilterParser.parseFilters());
+        filters = new ArrayList<>(FilterParser.parseFilters(true));
 
         if (filters.size() != 10){
             System.err.println("Error while parsing filters");

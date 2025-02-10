@@ -1,8 +1,9 @@
 package ru.bmstu.naburnm8.dsp.filtering;
 
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
-public class Filter {
+public class Filter implements Callable<short[]> {
     public static double db2Linear(int db){
         return Math.pow(10, ((double) db/20));
     }
@@ -37,6 +38,7 @@ public class Filter {
     private double level;
     private final double[] impulseResponse;
     private final String type;
+    private short[] inputData;
 
     public Filter(double[] numerator, double[] denominator, int impulseResponseLength){
         this.level = 1;
@@ -72,5 +74,29 @@ public class Filter {
         return "Filter{" +
                 "level=" + level + "}";
 
+    }
+
+    public short[] convolve(short[] input){
+        short[] output = new short[input.length];
+        for (int i = 0; i < input.length - this.impulseResponse.length; i++) {
+            for (int j = 0; j < this.impulseResponse.length; j++) {
+                int multi = (int) (input[i] * this.impulseResponse[j]);
+                output[i+j] = (short) (multi * level);
+            }
+        }
+        return output;
+    }
+
+    @Override
+    public short[] call() throws Exception {
+       return this.convolve(inputData);
+    }
+
+    public short[] getInputData() {
+        return inputData;
+    }
+
+    public void setInputData(short[] inputData) {
+        this.inputData = inputData;
     }
 }

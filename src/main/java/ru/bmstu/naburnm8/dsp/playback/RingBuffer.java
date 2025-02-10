@@ -1,9 +1,12 @@
 package ru.bmstu.naburnm8.dsp.playback;
 
 
+import ru.bmstu.naburnm8.dsp.filtering.DataConverter;
 import ru.bmstu.naburnm8.dsp.filtering.Filter;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 public class RingBuffer {
     private final byte[] buffer;
@@ -12,10 +15,12 @@ public class RingBuffer {
     private int readPos = 0;
     private int available = 0;
     private double vibratoRate = 0;
+    private final int bufSize;
 
     public RingBuffer(int size) {
         buffer = new byte[size];
         prevBuffer = new byte[size];
+        bufSize = size;
     }
 
     public byte[] getBuffer() {
@@ -50,18 +55,18 @@ public class RingBuffer {
     }
 
     public synchronized void applyVolume(double factor) {
-        int bufferSize = available;  // Number of samples in the buffer
+        int bufferSize = available;  // number of samples in the buffer
         int readIndex = readPos;
 
-        // Iterate over the available samples in the buffer
+        // iterate over the available samples in the buffer
         for (int i = 0; i < bufferSize; i++) {
             short sample = (short)((buffer[readIndex] & 0xFF) | (buffer[(readIndex + 1) % buffer.length] << 8));
 
             sample = (short)Math.max(Math.min(sample * factor, Short.MAX_VALUE), Short.MIN_VALUE);
 
-            buffer[readIndex] = (byte)(sample & 0xFF);  // Low byte
-            buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);  // High byte
-            readIndex = (readIndex + 2) % buffer.length;
+            buffer[readIndex] = (byte)(sample & 0xFF);  // low byte
+            buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);  // high byte
+            readIndex = (readIndex + 2) % buffer.length; // move the read pos forward
         }
     }
 
@@ -108,8 +113,41 @@ public class RingBuffer {
         }
     }
 
-    public synchronized void applyFilters(List<Filter> filterChain){ // not implemented yet
-        System.out.println("Tried to filter!");
+    public synchronized void applyFilters(List<Filter> filterChain) throws ExecutionException, InterruptedException { // not implemented yet
+        short[] filtered = new short[buffer.length / 2];
+        short[] inputTransformed = DataConverter.byteToShortArrayLIB(buffer);
+
+        int numberOfTasks = filterChain.size();
+
+        for (Filter filter: filterChain){
+            filter.setInputData(inputTransformed);
+        }
+        ExecutorService executor = Executors.newFixedThreadPool(numberOfTasks);
+        Future<short[]>[] fs = new Future[numberOfTasks];
+        for (int i = 0; i < numberOfTasks; i++) {
+            fs[i] = executor.submit(filterChain.get(i));
+        }
+
+
+
+        for (int i = 0; i < filtered.length; i++) {
+            filtered[i] += (short) (fs[0].get()[i] + fs[1].get()[i] + fs[2].get()[i] + fs[3].get()[i] + fs[4].get()[i] + fs[5].get()[i] + fs[6].get()[i] + fs[7].get()[i] + fs[8].get()[i] + fs[9].get()[i]); ;
+        }
+
+        int bufferSize = available;
+        int readIndex = readPos;
+
+        for (int i = 0; i < bufferSize; i++) {
+            if (readIndex == bufSize/2){
+                continue;
+            }
+            short sample = filtered[readIndex];
+            buffer[readIndex] = (byte)(sample & 0xFF);
+            buffer[(readIndex + 1) % buffer.length] = (byte)((sample >> 8) & 0xFF);
+            readIndex = (readIndex + 2) % buffer.length;
+        }
+
+
     }
 
     public void applyVolume1Byte(double volume) {
