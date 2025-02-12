@@ -26,7 +26,6 @@ public class FFT {
         for (int i = 0; i < n; i++) {
             doubleSamples[i] = samples[i];
         }
-
         FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
         return fft.transform(doubleSamples, null);
     }

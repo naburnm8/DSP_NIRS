@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class GUIPlayback extends Component {
-    private static final int RING_BUF_SIZE = 131072;
+    private static final int RING_BUF_SIZE = 131072; // in bytes
     private static final String label = "Music Player, now playing: ";
     private static final String staticLabel = "Music Player";
 
@@ -46,7 +46,13 @@ public class GUIPlayback extends Component {
 
     private boolean filteringActive = true;
 
+    private int groupSize;
+
     public GUIPlayback() {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int frameWidth = (int)(0.6 * screenSize.getWidth());
+        double frameRatio = 0.5;
+        int frameHeight = Math.max((int)(frameWidth*frameRatio), 800);
         filters = new ArrayList<>(FilterParser.parseFilters(true));
 
         if (filters.size() != 10){
@@ -56,14 +62,18 @@ public class GUIPlayback extends Component {
 
         JFrame frame = new JFrame("Music Player");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(2048, 1024);
+        frame.setSize(frameWidth, frameHeight);
+
+
 
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
         double[] initialData = {10, 20, 30, 40, 50};
-        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "Spectrum", 750);
+        int maxBarsToDisplay = (int)(frameWidth * 0.507);
+
+        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "Spectrum", maxBarsToDisplay);
 
 
         JPanel panel = new JPanel();
