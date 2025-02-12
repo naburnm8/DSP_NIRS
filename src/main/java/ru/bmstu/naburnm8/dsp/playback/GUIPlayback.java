@@ -14,6 +14,8 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,7 +48,21 @@ public class GUIPlayback extends Component {
 
     private boolean filteringActive = true;
 
+    private int groupSize;
+
     public GUIPlayback() {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        //System.out.println("Screen Size: " + screenSize);
+
+        int frameWidth = (int)(0.6 * screenSize.getWidth());
+
+        double frameRatio = 0.5;
+
+        int frameHeight = Math.max((int)(frameWidth*frameRatio), 800);
+
+        //System.out.println("Frame Width: " + frameWidth);
+
         filters = new ArrayList<>(FilterParser.parseFilters(true));
 
         if (filters.size() != 10){
@@ -56,14 +72,17 @@ public class GUIPlayback extends Component {
 
         JFrame frame = new JFrame("Music Player");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(2048, 1024);
+        frame.setSize(frameWidth, frameHeight);
+
+
 
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
         double[] initialData = {10, 20, 30, 40, 50};
-        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "Spectrum", 750);
+        int maxBarsToDisplay = (int)(frameWidth * 1.95 * 0.75);
+        barChartPanel = new BarChartPanel(initialData, Color.BLUE, "Spectrum", maxBarsToDisplay - 10);
 
 
         JPanel panel = new JPanel();

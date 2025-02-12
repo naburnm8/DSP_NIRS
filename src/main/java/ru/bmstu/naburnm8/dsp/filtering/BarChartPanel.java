@@ -2,9 +2,12 @@ package ru.bmstu.naburnm8.dsp.filtering;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.Arrays;
 
-public class BarChartPanel extends JPanel {
+public class BarChartPanel extends JPanel implements ComponentListener {
     private double[] data;
     private Color barColor;
     private final String title;
@@ -33,6 +36,8 @@ public class BarChartPanel extends JPanel {
         int width = getWidth();
         int height = getHeight();
         int maxBarHeight = height - 50;
+
+        //System.out.println(width);
 
         double[] aggregatedData = aggregateData(data, maxBarsToDisplay);
 
@@ -112,5 +117,27 @@ public class BarChartPanel extends JPanel {
             }
             barChartPanel.setData(newData);
         }).start();
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {
+        if (maxBarsToDisplay > this.getWidth()){
+            maxBarsToDisplay = (int)(this.getWidth() * 0.75);
+        }
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e) {
+
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e) {
+
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e) {
+
     }
 }
