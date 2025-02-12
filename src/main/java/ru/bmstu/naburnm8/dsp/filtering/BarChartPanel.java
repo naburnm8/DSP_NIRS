@@ -7,7 +7,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.Arrays;
 
-public class BarChartPanel extends JPanel implements ComponentListener {
+public class BarChartPanel extends JPanel implements ComponentListener{
     private double[] data;
     private Color barColor;
     private final String title;
@@ -18,6 +18,7 @@ public class BarChartPanel extends JPanel implements ComponentListener {
         this.barColor = barColor;
         this.title = title;
         this.maxBarsToDisplay = maxBarsToDisplay;
+        this.addComponentListener(this);
     }
 
     public void setData(double[] newData) {
@@ -121,8 +122,8 @@ public class BarChartPanel extends JPanel implements ComponentListener {
 
     @Override
     public void componentResized(ComponentEvent e) {
-        if (maxBarsToDisplay > this.getWidth()){
-            maxBarsToDisplay = (int)(this.getWidth() * 0.75);
+        if (maxBarsToDisplay > this.getWidth() || this.getWidth() / maxBarsToDisplay > 1) {
+            maxBarsToDisplay = this.getWidth();
         }
     }
 
