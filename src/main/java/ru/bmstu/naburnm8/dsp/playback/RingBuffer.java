@@ -123,7 +123,7 @@ public class RingBuffer {
             filter.setInputData(inputTransformed);
         }
 
-        // Submit all tasks to the executor
+        
         ExecutorService executor = Executors.newFixedThreadPool(numberOfTasks);
         List<Future<short[]>> futures = executor.invokeAll(filterChain);
 
