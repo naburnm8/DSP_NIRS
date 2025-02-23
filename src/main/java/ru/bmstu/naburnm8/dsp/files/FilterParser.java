@@ -18,7 +18,7 @@ public class FilterParser {
             for (int i = 0; i < 10; i++){
                 String currentPath = path + "band" + i + ".fcf";
                 try {
-                    Filter filter = parseIIRFilter(currentPath, 1000);
+                    Filter filter = parseIIRFilter(currentPath, 4000);
                     filters.add(filter);
                 } catch (Exception e){
                     System.err.println(e.getMessage());

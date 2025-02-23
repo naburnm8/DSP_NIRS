@@ -4,6 +4,7 @@ package ru.bmstu.naburnm8.dsp.playback;
 import ru.bmstu.naburnm8.dsp.filtering.DataConverter;
 import ru.bmstu.naburnm8.dsp.filtering.Filter;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -127,7 +128,7 @@ public class RingBuffer {
         List<Future<short[]>> futures = executor.invokeAll(filterChain);
 
 
-
+/*
         for (Future<short[]> future : futures) {
             short[] result = future.get();
             for (int i = 0; i < filtered.length; i++) {
@@ -135,8 +136,23 @@ public class RingBuffer {
             }
         }
 
+ */
+
+
+
+        for (int i = 0; i < filtered.length; i++) {
+            for (Future<short[]> future : futures) {
+                short[] result = future.get();
+                filtered[i] += result[i];
+            }
+        }
+
 
         executor.shutdown();
+
+        //byte[] filteredBytes = DataConverter.convertShortArrayToByteArray(filtered);
+
+        //this.write(filteredBytes, 0, filteredBytes.length);
 
 
         int bufferSize = available;
@@ -150,12 +166,6 @@ public class RingBuffer {
             buffer[readIndex * 2] = (byte) (sample & 0xFF);
             buffer[(readIndex * 2) + 1] = (byte) ((sample >> 8) & 0xFF);
             readIndex = (readIndex + 1) % (filtered.length);
-        }
-    }
-
-    public void applyVolume1Byte(double volume) {
-        for (int i = 0; i < buffer.length; i++) {
-            buffer[i] = (byte)(buffer[i] * volume);
         }
     }
 }

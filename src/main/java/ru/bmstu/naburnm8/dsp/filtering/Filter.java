@@ -85,9 +85,28 @@ public class Filter implements Callable<short[]> {
         return output;
     }
 
+    public short[] convolveByFFT(short[] input){
+        short[] output = new short[input.length];
+        int irLength = this.impulseResponse.length;
+
+        // Use FFT-based convolution for efficiency
+        double[] inputDouble = new double[input.length];
+        for (int i = 0; i < input.length; i++) {
+            inputDouble[i] = input[i];
+        }
+
+        double[] outputDouble = FFT.convolve(inputDouble, this.impulseResponse);
+
+        for (int i = 0; i < output.length; i++) {
+            output[i] = (short) (outputDouble[i] * level);
+        }
+
+        return output;
+    }
+
     @Override
     public short[] call() throws Exception {
-       return this.convolve(inputData);
+       return this.convolveByFFT(inputData);
     }
 
     public short[] getInputData() {

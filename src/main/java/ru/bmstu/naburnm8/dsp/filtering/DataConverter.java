@@ -16,4 +16,13 @@ public class DataConverter {
         ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
         return shorts;
     }
+
+    public static byte[] convertShortArrayToByteArray(short[] shortArray) {
+        byte[] byteArray = new byte[shortArray.length * 2];
+        for (int i = 0; i < shortArray.length; i++) {
+            byteArray[i * 2 + 1] = (byte) (shortArray[i] >> 8);
+            byteArray[i * 2] = (byte) (shortArray[i] & 0xFF);
+        }
+        return byteArray;
+    }
 }

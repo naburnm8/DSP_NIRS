@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class BufferSizeExperiment extends Component {
-    private static final int RING_BUF_SIZE = 1024;
+    private static final int RING_BUF_SIZE = 131072;
     private double currentVolume = 0.5;
     private boolean playing = false;
     private String selectedFilePath;
@@ -22,7 +22,6 @@ public class BufferSizeExperiment extends Component {
     private RingBuffer ringBuffer;
     private AudioLoader loader;
     private int lastLoaderBytes;
-    private float musicRate;
 
     public BufferSizeExperiment() {
         JFrame frame = new JFrame("Buffer Size Experiment");
@@ -117,7 +116,6 @@ public class BufferSizeExperiment extends Component {
         player = new Player(format, RING_BUF_SIZE);
         ringBuffer = player.getRingBuffer();
         lastLoaderBytes = loader.loadToBuffer(ringBuffer, RING_BUF_SIZE);
-        musicRate = format.getSampleRate();
     }
 
     public static void main(String[] args) {
