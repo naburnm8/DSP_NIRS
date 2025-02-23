@@ -14,13 +14,12 @@ public class RingBuffer {
     private int writePos = 0;
     private int readPos = 0;
     private int available = 0;
+
     private double vibratoRate = 0;
-    private final int bufSize;
 
     public RingBuffer(int size) {
         buffer = new byte[size];
         prevBuffer = new byte[size];
-        bufSize = size;
     }
 
     public byte[] getBuffer() {
