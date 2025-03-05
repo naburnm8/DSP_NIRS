@@ -1,6 +1,8 @@
 package ru.bmstu.naburnm8.dsp.experiments;
 
 import ru.bmstu.naburnm8.dsp.files.AudioLoader;
+import ru.bmstu.naburnm8.dsp.files.FilterParser;
+import ru.bmstu.naburnm8.dsp.filtering.Filter;
 import ru.bmstu.naburnm8.dsp.playback.Player;
 import ru.bmstu.naburnm8.dsp.playback.RingBuffer;
 
@@ -12,6 +14,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class BufferSizeExperiment extends Component {
     private static final int RING_BUF_SIZE = 131072;
@@ -23,6 +26,8 @@ public class BufferSizeExperiment extends Component {
     private AudioLoader loader;
     private int lastLoaderBytes;
 
+
+
     public BufferSizeExperiment() {
         JFrame frame = new JFrame("Buffer Size Experiment");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -33,6 +38,9 @@ public class BufferSizeExperiment extends Component {
         JSlider volumeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
         volumeSlider.setMajorTickSpacing(10);
         volumeSlider.setMinorTickSpacing(1);
+
+        this.lines = getLines();
+
 
         volumeSlider.setPaintTicks(true);
 
@@ -70,7 +78,7 @@ public class BufferSizeExperiment extends Component {
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout());
 
-        JLabel ringBufSizeLabel = new JLabel(String.valueOf(RING_BUF_SIZE));
+        JLabel ringBufSizeLabel = new JLabel(String.valueOf(RING_BUF_SIZE/2));
 
         panel.add(playButton);
         panel.add(stopButton);
@@ -88,6 +96,7 @@ public class BufferSizeExperiment extends Component {
             while (playing && lastLoaderBytes > 0) {
                 try {
                     ringBuffer.applyVolume(currentVolume);
+                    ringBuffer.notifyBufferReady(lines);
                     player.play();
                     lastLoaderBytes = loader.loadToBuffer(ringBuffer, RING_BUF_SIZE);
                 } catch (Exception e){
@@ -109,6 +118,11 @@ public class BufferSizeExperiment extends Component {
             System.out.println("Selected file: " + selectedFilePath);
             playing = false;
         }
+    }
+
+    private ArrayList<Filter> lines;
+    private ArrayList<Filter> getLines(){
+        return new ArrayList<>(FilterParser.parseFilters(true, false));
     }
     private void initMusicPlayer() throws UnsupportedAudioFileException, IOException, LineUnavailableException {
         loader = new AudioLoader(selectedFilePath);

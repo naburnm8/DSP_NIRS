@@ -33,10 +33,10 @@ public class Filter implements Callable<short[]> {
         return impulseResponse;
     }
 
-    private double level;
-    private final double[] impulseResponse;
-    private final String type;
-    private short[] inputData;
+    protected double level;
+    protected final double[] impulseResponse;
+    protected final String type;
+    protected short[] inputData;
 
     public Filter(double[] numerator, double[] denominator, int impulseResponseLength){
         this.level = 1;
@@ -106,7 +106,7 @@ public class Filter implements Callable<short[]> {
 
     @Override
     public short[] call() throws Exception {
-       return this.convolveByFFT(inputData);
+       return this.convolve(inputData);
     }
 
     public short[] getInputData() {

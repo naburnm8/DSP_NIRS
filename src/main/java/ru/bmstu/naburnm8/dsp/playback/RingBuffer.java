@@ -113,7 +113,11 @@ public class RingBuffer {
         }
     }
 
-    public synchronized void applyFilters(List<Filter> filterChain) throws ExecutionException, InterruptedException {
+    public void notifyBufferReady(List<Filter> lines) throws InterruptedException, ExecutionException {
+        applyFilters(lines);
+    }
+
+    public void applyFilters(List<Filter> filterChain) throws ExecutionException, InterruptedException {
         short[] inputTransformed = DataConverter.byteToShortArrayLIB(buffer);
         short[] filtered = new short[inputTransformed.length];
 
@@ -128,18 +132,6 @@ public class RingBuffer {
         List<Future<short[]>> futures = executor.invokeAll(filterChain);
 
 
-/*
-        for (Future<short[]> future : futures) {
-            short[] result = future.get();
-            for (int i = 0; i < filtered.length; i++) {
-                filtered[i] += result[i];
-            }
-        }
-
- */
-
-
-
         for (int i = 0; i < filtered.length; i++) {
             for (Future<short[]> future : futures) {
                 short[] result = future.get();
@@ -149,10 +141,6 @@ public class RingBuffer {
 
 
         executor.shutdown();
-
-        //byte[] filteredBytes = DataConverter.convertShortArrayToByteArray(filtered);
-
-        //this.write(filteredBytes, 0, filteredBytes.length);
 
 
         int bufferSize = available;

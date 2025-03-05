@@ -1,6 +1,7 @@
 package ru.bmstu.naburnm8.dsp.files;
 
 import ru.bmstu.naburnm8.dsp.filtering.Filter;
+import ru.bmstu.naburnm8.dsp.filtering.FilterOptimum;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -11,14 +12,18 @@ import java.util.List;
 
 public class FilterParser {
 
-    public static List<Filter> parseFilters(boolean parseIIR){
+    public static List<Filter> parseFilters(boolean parseIIR, boolean doOptimise) {
+        return parseFiltersArgs(parseIIR, 1000, 10, "", doOptimise);
+    }
+
+    public static List<Filter> parseFiltersArgs(boolean parseIIR, int parsedLength, int nParsed, String prefix, boolean doOptimise) {
         ArrayList<Filter> filters = new ArrayList<>();
         if (parseIIR) {
             String path = "src/main/resources/IIR/";
-            for (int i = 0; i < 10; i++){
-                String currentPath = path + "band" + i + ".fcf";
+            for (int i = 0; i < nParsed; i++){
+                String currentPath = path + prefix + "band" + i + ".fcf";
                 try {
-                    Filter filter = parseIIRFilter(currentPath, 4000);
+                    Filter filter = parseIIRFilter(currentPath, parsedLength, doOptimise);
                     filters.add(filter);
                 } catch (Exception e){
                     System.err.println(e.getMessage());
@@ -28,10 +33,10 @@ public class FilterParser {
         }
         else {
             String path = "src/main/resources/FIR/";
-            for (int i = 0; i < 10; i++){
-                String currentPath = path + "band" + i + ".fcf";
+            for (int i = 0; i < nParsed; i++){
+                String currentPath = path + prefix + "band" + i + ".fcf";
                 try {
-                    Filter filter = parseFIRFilter(currentPath);
+                    Filter filter = parseFIRFilter(currentPath, doOptimise);
                     filters.add(filter);
                 } catch (Exception e){
                     System.err.println(e.getMessage());
@@ -41,7 +46,7 @@ public class FilterParser {
         }
         return filters;
     }
-    public static Filter parseFIRFilter(String path) throws IOException {
+    public static Filter parseFIRFilter(String path, boolean doOptimise) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(path));
         ArrayList<Double> numerator = new ArrayList<>();
         boolean isNumerator = false;
@@ -69,10 +74,13 @@ public class FilterParser {
         for (int i = 0; i < numeratorArray.length; i++){
             numeratorArray[i] = numerator.get(i);
         }
+        if (doOptimise) {
+            return new FilterOptimum(numeratorArray);
+        }
         return new Filter(numeratorArray);
     }
 
-    public static Filter parseIIRFilter(String path, int impulseResponseLength) throws IOException {
+    public static Filter parseIIRFilter(String path, int impulseResponseLength, boolean doOptimise) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(path));
         ArrayList<Double> numerator = new ArrayList<>();
         ArrayList<Double> denominator = new ArrayList<>();
@@ -113,13 +121,16 @@ public class FilterParser {
         for (int i = 0; i < denominatorArray.length; i++){
             denominatorArray[i] = denominator.get(i);
         }
+        if (doOptimise){
+            return new FilterOptimum(numeratorArray, denominatorArray, impulseResponseLength);
+        }
         return new Filter(numeratorArray, denominatorArray, impulseResponseLength);
     }
     public static void main(String[] args) {
         String path = "src/main/resources/FIR/band0.fcf";
         try {
             //Filter parsed = parseIIRFilter(path, 90);
-            Filter parsed = parseFIRFilter(path);
+            Filter parsed = parseFIRFilter(path, true);
             System.out.println(parsed);
         } catch (IOException e) {
             e.printStackTrace();

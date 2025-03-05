@@ -53,7 +53,7 @@ public class GUIPlayback extends Component {
         int frameWidth = (int)(0.6 * screenSize.getWidth());
         double frameRatio = 0.5;
         int frameHeight = Math.max((int)(frameWidth*frameRatio), 800);
-        filters = new ArrayList<>(FilterParser.parseFilters(true));
+        filters = new ArrayList<>(FilterParser.parseFilters(true, true));
 
         if (filters.size() != 10){
             System.err.println("Error while parsing filters");
@@ -92,7 +92,6 @@ public class GUIPlayback extends Component {
 
         JPanel bandPanel = new JPanel();
         bandPanel.setLayout(new BoxLayout(bandPanel, BoxLayout.Y_AXIS));
-
         bandLabels = new ArrayList<>();
 
         for (int i = 0; i < 10; i++){
@@ -326,7 +325,6 @@ public class GUIPlayback extends Component {
     }
 
     private void driveFFTDisplay(byte[] bytes) {  // TODO: FIX FFT UPDATES
-        // assume FFT output divided by 4
         int n = RING_BUF_SIZE / 2;
         n = n / 2; //screen updates 10 times per buffer
         System.out.println(n);

@@ -22,7 +22,7 @@ function varargout = program(varargin)
 
 % Edit the above text to modify the response to help program
 
-% Last Modified by GUIDE v2.5 18-Feb-2025 20:58:56
+% Last Modified by GUIDE v2.5 19-Feb-2025 14:29:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -77,6 +77,16 @@ set_param('untitled1/dB Gain8','db',"0");
 set_param('untitled1/dB Gain9','db',"0");
 set_param('untitled1/Manual Switch', 'Sw', '0')
 set_param('untitled1/Manual Switch1', 'Sw', '0')
+set_param('untitled1/Manual Switch2', 'Sw', '0')
+set_param('untitled1/Manual Switch3', 'Sw', '0')
+set_param('untitled1/Manual Switch4', 'Sw', '0')
+set_param('untitled1/Manual Switch5', 'Sw', '0')
+set_param('untitled1/Manual Switch6', 'Sw', '0')
+set_param('untitled1/Manual Switch7', 'Sw', '0')
+set_param('untitled1/Manual Switch8', 'Sw', '0')
+set_param('untitled1/Manual Switch9', 'Sw', '0')
+set_param('untitled1/Manual Switch10', 'Sw', '0')
+set_param('untitled1/Manual Switch11', 'Sw', '0')
 untitled1;
 
 
@@ -430,3 +440,22 @@ function checkbox2_Callback(hObject, eventdata, handles)
 value = get(hObject,'Value');
 set_param('untitled1/Manual Switch1', 'Sw', int2str(value));
 % Hint: get(hObject,'Value') returns toggle state of checkbox2
+
+
+% --- Executes on button press in checkbox3.
+function checkbox3_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+value = get(hObject,'Value');
+set_param('untitled1/Manual Switch2', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch3', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch4', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch5', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch6', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch7', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch8', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch9', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch10', 'Sw', int2str(value));
+set_param('untitled1/Manual Switch11', 'Sw', int2str(value));
+% Hint: get(hObject,'Value') returns toggle state of checkbox3
