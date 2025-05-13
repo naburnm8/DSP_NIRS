@@ -18,6 +18,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 class ExperimentCase {
     private String name;
@@ -58,12 +59,12 @@ public class FilterOrderExperiment extends Component {
     private RingBuffer ringBuffer;
     private AudioLoader loader;
     private int lastLoaderBytes;
-    private ArrayList<Filter> lPassIIR;
-    private ArrayList<Filter> bPassIIR;
-    private ArrayList<Filter> hPassIIR;
-    private ArrayList<Filter> lPassFIR;
-    private ArrayList<Filter> bPassFIR;
-    private ArrayList<Filter> hPassFIR;
+    private final ArrayList<Filter> lPassIIR;
+    private final ArrayList<Filter> bPassIIR;
+    private final ArrayList<Filter> hPassIIR;
+    private final ArrayList<Filter> lPassFIR;
+    private final ArrayList<Filter> bPassFIR;
+    private final ArrayList<Filter> hPassFIR;
 
     private int filterMode = 0;
     private int filterQuality = 0;
@@ -72,22 +73,22 @@ public class FilterOrderExperiment extends Component {
 
 
     FilterOrderExperiment() {
-        lPassIIR = new ArrayList<>(FilterParser.parseFiltersArgs(true, 1000, 3, "EXP_lpass", true));
-        bPassIIR = new ArrayList<>(FilterParser.parseFiltersArgs(true, 1000, 3, "EXP_bpass", true));
-        hPassIIR = new ArrayList<>(FilterParser.parseFiltersArgs(true, 1000, 3, "EXP_hpass", true));
+        lPassIIR = new ArrayList<>(FilterParser.parseFiltersArgs(true, 1000, 3, "EXP_lpass", false));
+        bPassIIR = new ArrayList<>(FilterParser.parseFiltersArgs(true, 1000, 3, "EXP_bpass", false));
+        hPassIIR = new ArrayList<>(FilterParser.parseFiltersArgs(true, 1000, 3, "EXP_hpass", false));
 
         lPassFIR = new ArrayList<>(FilterParser.parseFiltersArgs(false, 1000, 3, "EXP_lpass", true));
         bPassFIR = new ArrayList<>(FilterParser.parseFiltersArgs(false, 1000, 3, "EXP_bpass", true));
         hPassFIR = new ArrayList<>(FilterParser.parseFiltersArgs(false, 1000, 3, "EXP_hpass", true));
 
-        int frameWidth = (int)(0.6*800);
+        int frameWidth = (int)(0.6*1500);
         double[] initialData = {10, 20, 30, 40, 50};
         int maxBarsToDisplay = (int)(frameWidth * 0.507);
         barChartPanel = new BarChartPanel(initialData, Color.BLUE, "Spectrum", maxBarsToDisplay);
 
         JFrame frame = new JFrame("Buffer Size Experiment");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800,400);
+        frame.setSize(1500,1000);
         JButton playButton = new JButton("Play");
         JButton stopButton = new JButton("Stop");
         JButton pickButton = new JButton("Pick Wav");
@@ -100,6 +101,9 @@ public class FilterOrderExperiment extends Component {
                 new ExperimentCase("Band pass FIR", 4),
                 new ExperimentCase("High pass FIR", 5),
         });
+
+        qualityChooser.setSelectedIndex(0);
+        experimentChooser.setSelectedIndex(0);
 
         qualityChooser.addListSelectionListener(l -> {
             filterQuality = qualityChooser.getSelectedIndex();
@@ -141,8 +145,15 @@ public class FilterOrderExperiment extends Component {
         panel.add(playButton);
         panel.add(stopButton);
         panel.add(pickButton);
-        panel.add(barChartPanel);
-        frame.add(panel);
+        panel.add(qualityChooser);
+        panel.add(experimentChooser);
+
+        JPanel main = new JPanel(new BorderLayout());
+
+        main.add(panel, BorderLayout.NORTH);
+        main.add(barChartPanel, BorderLayout.CENTER);
+
+        frame.add(main);
         frame.setVisible(true);
 
     }
@@ -170,7 +181,6 @@ public class FilterOrderExperiment extends Component {
         new Thread(() -> {
             while (playing && lastLoaderBytes > 0) {
                 try {
-                    ringBuffer.applyVolume(0.5);
                     switch (filterMode) {
                         case 0: {
                             ArrayList<Filter> filter = new ArrayList<>();
@@ -207,8 +217,7 @@ public class FilterOrderExperiment extends Component {
 
                         double[] fftSamples = FFT.toFrequencySpace(DataConverter.byteToShortArrayLIB(ringBuffer.getBuffer()));
                         updateChart(fftSamples);
-
-                        //driveFFTDisplay(ringBuffer.getBuffer());
+                        System.out.println(Arrays.toString(fftSamples));
                     };
                     Thread fftThread = new Thread(fftDisplay);
                     fftThread.setName("FFT");

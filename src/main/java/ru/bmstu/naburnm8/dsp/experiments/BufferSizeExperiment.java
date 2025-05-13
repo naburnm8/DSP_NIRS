@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class BufferSizeExperiment extends Component {
-    private static final int RING_BUF_SIZE = 131072;
+    private static final int RING_BUF_SIZE = 8;
     private double currentVolume = 0.5;
     private boolean playing = false;
     private String selectedFilePath;
@@ -96,7 +96,7 @@ public class BufferSizeExperiment extends Component {
             while (playing && lastLoaderBytes > 0) {
                 try {
                     ringBuffer.applyVolume(currentVolume);
-                    ringBuffer.notifyBufferReady(lines);
+                    //ringBuffer.notifyBufferReady(lines);
                     player.play();
                     lastLoaderBytes = loader.loadToBuffer(ringBuffer, RING_BUF_SIZE);
                 } catch (Exception e){

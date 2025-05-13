@@ -48,6 +48,8 @@ public class GUIPlayback extends Component {
 
     private int groupSize;
 
+    private boolean lastCheck;
+
     public GUIPlayback() {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int frameWidth = (int)(0.6 * screenSize.getWidth());
@@ -270,6 +272,7 @@ public class GUIPlayback extends Component {
                   if (filteringActive){
                       ringBuffer.applyFilters(filters);
                   }
+                  lastCheck = checkBands(9);
                   if (echoActive){
                       ringBuffer.applyEcho(echoDepth, echoIntensity);
                   }
@@ -279,7 +282,12 @@ public class GUIPlayback extends Component {
                   Runnable fftDisplay = () -> {
 
                     double[] fftSamples = FFT.toFrequencySpace(DataConverter.byteToShortArrayLIB(ringBuffer.getBuffer()));
-                    updateChart(fftSamples);
+                    if (filteringActive && lastCheck){
+                        updateChart(amendFFT(fftSamples));
+                    }
+                    else {
+                        updateChart(fftSamples);
+                    }
 
                       //driveFFTDisplay(ringBuffer.getBuffer());
                   };
@@ -287,6 +295,9 @@ public class GUIPlayback extends Component {
                   Thread fftThread = new Thread(fftDisplay);
                   fftThread.setName("FFT");
                   fftThread.start();
+                  if (filteringActive && lastCheck){
+                      ringBuffer.applyVolume(0.01);
+                  }
                   player.play();
                   lastLoaderBytes = loader.loadToBuffer(ringBuffer, RING_BUF_SIZE);
               }
@@ -322,6 +333,32 @@ public class GUIPlayback extends Component {
     }
     private void updateChart(double[] fftSamples) {
         barChartPanel.setData(fftSamples);
+    }
+
+    private boolean checkBands(int nExclude){
+        for (int i = 0; i < filters.size(); i++){
+            double level = filters.get(i).getLevel();
+            if (i == nExclude){
+                continue;
+            }
+            if (level > 0.1){
+                return false;
+            }
+        }
+        return filters.get(nExclude).getLevel() > 0.1;
+    }
+
+    private double[] amendFFT(double[] fftSamples){
+        double[] newFFT = new double[fftSamples.length];
+        for (int i = 0; i < fftSamples.length; i++){
+            if (i <= 50){
+                newFFT[i] = 0;
+            }
+            else{
+                newFFT[i] = fftSamples[i];
+            }
+        }
+        return newFFT;
     }
 
     private void driveFFTDisplay(byte[] bytes) {  // TODO: FIX FFT UPDATES
